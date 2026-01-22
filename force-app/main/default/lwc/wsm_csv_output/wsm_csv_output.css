@@ -1,0 +1,18 @@
+.download-container > a {
+    padding: 0.5rem;
+    display: block;
+    color: #fff;
+    background-color: #015681;
+    text-align: center;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    letter-spacing: normal;
+    transition: 0.2s;
+}
+.download-container > a:hover {
+    background-color: #00344e;
+    letter-spacing: 2px;
+}
