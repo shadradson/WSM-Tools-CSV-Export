@@ -1,4 +1,11 @@
-.download-container > a {
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.download-container .download-btn,
+.download-container .save-to-record-btn {
     padding: 0.5rem;
     display: block;
     color: #fff;
@@ -11,8 +18,27 @@
     text-decoration: none;
     letter-spacing: normal;
     transition: 0.2s;
+    border: none;
+    flex: 1;
+    min-width: 120px;
 }
-.download-container > a:hover {
+
+.download-container .download-btn:hover,
+.download-container .save-to-record-btn:hover {
     background-color: #00344e;
     letter-spacing: 2px;
+}
+
+.download-container .save-to-record-btn {
+    background-color: #2e844a;
+}
+
+.download-container .save-to-record-btn:hover {
+    background-color: #1b5e30;
+}
+
+.download-container .save-to-record-btn:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+    letter-spacing: normal;
 }

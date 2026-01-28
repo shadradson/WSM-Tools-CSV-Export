@@ -2,7 +2,15 @@
     <div class="download-container" lwc:if={displayDownloadButton}>
         <h3>CSV is ready for download.</h3>
         <p>File Name: {INCFileName}</p>
-        <a href={downloadLink} download={INCFileName}>DOWNLOAD</a>
+        <div class="button-group">
+            <a href={downloadLink} download={INCFileName} class="download-btn">DOWNLOAD</a>
+            <button 
+                lwc:if={showSaveToRecordButton} 
+                class="save-to-record-btn" 
+                onclick={handleSaveToRecord}
+                disabled={isSaving}>
+                {saveButtonLabel}
+            </button>
+        </div>
     </div>
 </template>
-
