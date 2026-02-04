@@ -14,6 +14,7 @@
             <property name='INCPreamble' type='String' label='Incoming Preable Row Text' description='Input text in correct format in documentation.'/>
             <property name='INCFieldSettingsJSON' type='String' label='Incoming Field Settings JSON' description='Input text in correct format in documentation.'/>
             <property name='INCFileName' type='String' label='Exported File Name' description='Example thisFile.csv'/>
+            <property name='INCFirstPublishedLocationId' type='String' label='First Published Location Id' description='This is the Id of the record you would like the resulting CSV to be saved to.'/>
             </targetConfig>
     </targetConfigs>
     

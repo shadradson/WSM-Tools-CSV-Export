@@ -10,6 +10,7 @@ export default class Wsm_csv_output extends LightningElement {
     @api INCFileName;
     @api INCFirstPublishedLocationId; // Record ID to link the saved file to
     displayDownloadButton = false;
+    displaySaveButton = false;
     downloadLink = '';
     ParsedFieldSettings;
     csvContent = ''; // Store CSV content for save to record
@@ -21,14 +22,14 @@ export default class Wsm_csv_output extends LightningElement {
         //let compiledHeaderTxt = this.createHeader(BrokentIncRecords);
         //let compiledRowsTxt = this.compileRowData(BrokentIncRecords);
         let compiledHeaderTxt = '';
-        let compiledRowsTxt = this.compileRowDataForBiowerx(BrokentIncRecords);
+        let compiledRowsTxt = this.compileRowData(BrokentIncRecords);
 
         // fix text newlines in preamble
         let preamble = '';
         if (this.INCPreamble) {
             preamble = this.INCPreamble;
-            preamble = preamble.replace(/\{newline\}/g, '\n\r'); 
-            preamble = preamble.replace(/\,/g, ''); 
+            preamble = preamble.replace(/\{newline\}/g, '\n\r');
+            preamble = preamble.replace(/\,/g, '');
             preamble += '\n\r';
         }
 
@@ -51,7 +52,7 @@ export default class Wsm_csv_output extends LightningElement {
      * @returns {String} Button label text
      */
     get saveButtonLabel() {
-        return this.isSaving ? 'SAVING...' : 'SAVE TO RECORD';
+        return this.isSaving ? 'SAVING...' : 'SAVE';
     }
 
     /**
@@ -60,71 +61,44 @@ export default class Wsm_csv_output extends LightningElement {
      */
     handleSaveToRecord() {
         if (this.isSaving) return;
-        
+
         this.isSaving = true;
-        
+
         // Add BOM for Excel compatibility
         const csvWithBOM = '\uFEFF' + this.csvContent;
-        
+
         saveCSVToRecord({
             csvContent: csvWithBOM,
             fileName: this.INCFileName,
             firstPublishedLocationId: this.INCFirstPublishedLocationId
         })
-        .then(result => {
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Success',
-                    message: 'CSV file saved to record successfully',
-                    variant: 'success'
-                })
-            );
-            console.log('ContentVersion created:', result);
-        })
-        .catch(error => {
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Error',
-                    message: error.body?.message || 'An error occurred while saving the file',
-                    variant: 'error'
-                })
-            );
-            console.error('Error saving CSV to record:', error);
-        })
-        .finally(() => {
-            this.isSaving = false;
-        });
-    }
-
-
-    compileRowDataForBiowerx(BrokentIncRecords) {
-        try {
-
-            let OutputText = '';
-            console.log('Incoming Records: ', JSON.stringify(BrokentIncRecords));
-            const map = new Map();
-            for (const item of BrokentIncRecords) {
-                if (!map.has(item.Name)) map.set(item.Name, { category: item.Name, data: [] });
-                map.get(item.Name).data.push(item);
-            }
-            const CategorizedArray2 = Array.from(map.values());
-            console.log('Categorized Array: ', JSON.stringify(CategorizedArray2));
-
-            CategorizedArray2.forEach(Category => {
-
-                let currentCategoryOutTXT = '\n\r' + Category.category + ',Serial Number,Expiration Date\n\r';
-                currentCategoryOutTXT += this.compileRowData(Category.data);
-                console.log('currentCategoryOutTXT: ', currentCategoryOutTXT);
-                OutputText += currentCategoryOutTXT;
+            .then(result => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Success',
+                        message: 'CSV file saved to record successfully',
+                        variant: 'success'
+                    })
+                );
+                console.log('ContentVersion created:', result);
+            })
+            .catch(error => {
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title: 'Error',
+                        message: error.body?.message || 'An error occurred while saving the file',
+                        variant: 'error'
+                    })
+                );
+                console.error('Error saving CSV to record:', error);
+            })
+            .finally(() => {
+                this.isSaving = false;
             });
-            return OutputText;
-        }
-        catch (error) {
-            console.log("Error in CompileRowDataForBiowerx: ", error.message);
-        };
-
-
     }
+
+
+
 
     compileRowData(BrokentIncRecords) {
 
@@ -135,13 +109,26 @@ export default class Wsm_csv_output extends LightningElement {
 
             BrokentIncRecords.forEach(Record => {
                 let currentRowOutText = '';
+                if (loopnum === 0) {
+                    this.ParsedFieldSettings.forEach(fieldSetting => {
+                        currentRowOutText += this.normalizeOutputForRow(fieldSetting.usedLabel) + ',';
+                    });
+                    currentRowOutText += '\n';
+                    outputRows += currentRowOutText;
+                    currentRowOutText = '';
+                }
                 this.ParsedFieldSettings.forEach(fieldSetting => {
+                    console.log('Field Setting: ',JSON.stringify(fieldSetting));
                     if (fieldSetting.type === 'count') {
                         let rowNumber = loopnum + 1;
                         currentRowOutText += rowNumber + ',';
                     }
                     else if (fieldSetting.type === 'recordfield') {
                         currentRowOutText += this.normalizeOutputForRow(Record[fieldSetting.apiName]) + ',';
+                    }
+                    else if (fieldSetting.type === 'hardCodedValue') {
+                        console.log('Hard Coded Value: ',JSON.stringify(fieldSetting));
+                        currentRowOutText += this.normalizeOutputForRow(fieldSetting.value) + ',';
                     }
                 });
                 currentRowOutText += '\n';
