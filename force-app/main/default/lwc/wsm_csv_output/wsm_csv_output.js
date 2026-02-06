@@ -15,6 +15,7 @@ export default class Wsm_csv_output extends LightningElement {
     ParsedFieldSettings;
     csvContent = ''; // Store CSV content for save to record
     isSaving = false;
+    summaryDataObject = [];
 
     connectedCallback() {
         this.ParsedFieldSettings = JSON.parse(this.INCFieldSettingsJSON);
@@ -23,6 +24,7 @@ export default class Wsm_csv_output extends LightningElement {
         //let compiledRowsTxt = this.compileRowData(BrokentIncRecords);
         let compiledHeaderTxt = '';
         let compiledRowsTxt = this.compileRowData(BrokentIncRecords);
+        let compiledSummarization = this.compileSummarizations();
 
         // fix text newlines in preamble
         let preamble = '';
@@ -33,7 +35,7 @@ export default class Wsm_csv_output extends LightningElement {
             preamble += '\n\r';
         }
 
-        let compiledCSVText = preamble + compiledHeaderTxt + compiledRowsTxt;
+        let compiledCSVText = preamble + compiledHeaderTxt + compiledRowsTxt + compiledSummarization;
         console.log('Full Output CSV Text: \n\n', compiledCSVText);
         this.csvContent = compiledCSVText; // Store for save to record
         this.createDownloadFile(compiledCSVText);
@@ -101,14 +103,22 @@ export default class Wsm_csv_output extends LightningElement {
 
 
     compileRowData(BrokentIncRecords) {
-
         console.log('Parsed Field Settings: ', this.ParsedFieldSettings);
         let outputRows = '';
-        let loopnum = 0
+        let loopnum = 0;
+        
+        // Initialize summaryDataObject with field settings and sum_val = 0
+        this.summaryDataObject = this.ParsedFieldSettings.map(fieldSetting => ({
+            ...fieldSetting,
+            sum_val: 0
+        }));
+        
         try {
-
             BrokentIncRecords.forEach(Record => {
                 let currentRowOutText = '';
+                let fieldnumber = 0;
+                
+                // Create header row on first iteration
                 if (loopnum === 0) {
                     this.ParsedFieldSettings.forEach(fieldSetting => {
                         currentRowOutText += this.normalizeOutputForRow(fieldSetting.usedLabel) + ',';
@@ -117,33 +127,43 @@ export default class Wsm_csv_output extends LightningElement {
                     outputRows += currentRowOutText;
                     currentRowOutText = '';
                 }
+                
                 this.ParsedFieldSettings.forEach(fieldSetting => {
-                    console.log('Field Setting: ',JSON.stringify(fieldSetting));
+                    //console.log('Field Setting: ',JSON.stringify(fieldSetting));
                     if (fieldSetting.type === 'count') {
                         let rowNumber = loopnum + 1;
                         currentRowOutText += rowNumber + ',';
                     }
                     else if (fieldSetting.type === 'recordfield') {
-                        currentRowOutText += this.normalizeOutputForRow(Record[fieldSetting.apiName]) + ',';
+                        let fieldValue = Record[fieldSetting.apiName];
+                        currentRowOutText += this.normalizeOutputForRow(fieldValue) + ',';
+                        
+                        // Accumulate sum for fields with summarize: true
+                        if (fieldSetting.summarize) {
+                            let numericValue = parseFloat(fieldValue) || 0;
+                            this.summaryDataObject[fieldnumber].sum_val += numericValue;
+                        }
                     }
                     else if (fieldSetting.type === 'hardCodedValue') {
-                        console.log('Hard Coded Value: ',JSON.stringify(fieldSetting));
+                        console.log('Hard Coded Value: ', JSON.stringify(fieldSetting));
                         currentRowOutText += this.normalizeOutputForRow(fieldSetting.value) + ',';
                     }
+                    fieldnumber++;
                 });
                 currentRowOutText += '\n';
                 outputRows += currentRowOutText;
                 loopnum++;
             });
 
-
         }
         catch (error) {
             console.log("Error in compileRowData", error.message);
-        };
+        }
 
         return outputRows;
     }
+
+   
 
     createHeader() {
         let currentRowOutText = '';
@@ -158,6 +178,39 @@ export default class Wsm_csv_output extends LightningElement {
             console.log("Error in createHeader: ", error.message);
         };
         return currentRowOutText
+    }
+
+    /**
+     * @description Compiles the summary row based on fields with summarize: true
+     * @returns {String} CSV-formatted summary row or empty string if no summarizations
+     */
+    compileSummarizations() {
+        // Check if any field has summarize set to true
+        let hasSummarizations = this.summaryDataObject.some(field => field.summarize);
+        if (!hasSummarizations) {
+            return '';
+        }
+
+        let summaryRowText = '';
+        try {
+            this.summaryDataObject.forEach(fieldData => {
+                if (fieldData.summarize) {
+                    // Output the accumulated sum value
+                    summaryRowText += this.normalizeOutputForRow(fieldData.sum_val) + ',';
+                } else if (fieldData.summaryLabel) {
+                    // Output a label (e.g., "Total:") for non-summarized fields
+                    summaryRowText += this.normalizeOutputForRow(fieldData.summaryLabel) + ',';
+                } else {
+                    // Empty cell for fields without summarization
+                    summaryRowText += ',';
+                }
+            });
+            summaryRowText += '\n';
+        }
+        catch (error) {
+            console.log("Error in compileSummarizations: ", error.message);
+        }
+        return summaryRowText;
     }
 
     createDownloadFile(incCSVText) {

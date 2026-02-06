@@ -71,11 +71,85 @@ The `INCFieldSettingsJSON` property accepts a JSON array defining how to process
 
 ### Field Setting Properties
 
-| Property | Description |
-|----------|-------------|
-| `usedLabel` | Column header label in the CSV |
-| `type` | Either `"recordfield"` (pulls value from record) or `"count"` (auto-incrementing row number) |
-| `apiName` | API name of the field to pull (required for `recordfield` type) |
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `usedLabel` | `String` | Yes | Column header label in the CSV |
+| `type` | `String` | Yes | Field type: `"recordfield"`, `"count"`, or `"hardCodedValue"` |
+| `apiName` | `String` | Conditional | API name of the field to pull (required for `recordfield` type) |
+| `value` | `String` | Conditional | Static value to use for every row (required for `hardCodedValue` type) |
+| `summarize` | `Boolean` | No | If `true`, adds a sum of this field's values in a summary row at the end |
+| `summaryLabel` | `String` | No | Text to display in this column on the summary row (e.g., "Total:") |
+
+### Field Types
+
+| Type | Description |
+|------|-------------|
+| `recordfield` | Pulls the value from the record using the `apiName` property |
+| `count` | Auto-incrementing row number (1, 2, 3, ...) |
+| `hardCodedValue` | Uses the static `value` property for every row |
+
+---
+
+## Row Summarization
+
+The component supports automatic summarization of numeric fields. When any field has `summarize: true`, a summary row is appended to the end of the CSV output.
+
+### How to Enable Summarization
+
+Add the following properties to your field settings:
+
+1. **`summarize: true`** - Add this to any `recordfield` that contains numeric data you want to sum
+2. **`summaryLabel`** (optional) - Add this to any field where you want a label to appear in the summary row (e.g., "Total:")
+
+### Summarization Example
+
+```json
+[
+    {
+        "usedLabel": "Item Name",
+        "type": "recordfield",
+        "apiName": "Name",
+        "summaryLabel": "TOTAL:"
+    },
+    {
+        "usedLabel": "Quantity",
+        "type": "recordfield",
+        "apiName": "Quantity__c",
+        "summarize": true
+    },
+    {
+        "usedLabel": "Unit Price",
+        "type": "recordfield",
+        "apiName": "Unit_Price__c",
+        "summarize": true
+    },
+    {
+        "usedLabel": "Line Total",
+        "type": "recordfield",
+        "apiName": "Line_Total__c",
+        "summarize": true
+    }
+]
+```
+
+### Example Output
+
+Given the above configuration and sample data, the CSV output would be:
+
+```
+Item Name,Quantity,Unit Price,Line Total,
+Widget A,10,25.00,250.00,
+Widget B,5,50.00,250.00,
+Widget C,20,10.00,200.00,
+TOTAL:,35,85.00,700.00,
+```
+
+### Summarization Notes
+
+- **Numeric Values Only**: The `summarize` feature works with numeric fields. Non-numeric values will be treated as `0`
+- **Summary Row Position**: The summary row always appears at the end of the CSV, after all data rows
+- **Empty Summary Cells**: Columns without `summarize: true` or `summaryLabel` will have empty cells in the summary row
+- **Multiple Summarizations**: You can summarize multiple columns in the same export
 
 ---
 
