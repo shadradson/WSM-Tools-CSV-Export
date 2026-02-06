@@ -110,7 +110,8 @@ export default class Wsm_csv_output extends LightningElement {
         // Initialize summaryDataObject with field settings and sum_val = 0
         this.summaryDataObject = this.ParsedFieldSettings.map(fieldSetting => ({
             ...fieldSetting,
-            sum_val: 0
+            sum_val: 0,
+            total_rows: 0
         }));
         
         try {
@@ -130,6 +131,9 @@ export default class Wsm_csv_output extends LightningElement {
                 
                 this.ParsedFieldSettings.forEach(fieldSetting => {
                     //console.log('Field Setting: ',JSON.stringify(fieldSetting));
+                    // count each row for averages.
+                    this.summaryDataObject[fieldnumber].total_rows += 1;
+
                     if (fieldSetting.type === 'count') {
                         let rowNumber = loopnum + 1;
                         currentRowOutText += rowNumber + ',';
@@ -139,7 +143,7 @@ export default class Wsm_csv_output extends LightningElement {
                         currentRowOutText += this.normalizeOutputForRow(fieldValue) + ',';
                         
                         // Accumulate sum for fields with summarize: true
-                        if (fieldSetting.summarize) {
+                        if (fieldSetting.summarize || fieldSetting.average) {
                             let numericValue = parseFloat(fieldValue) || 0;
                             this.summaryDataObject[fieldnumber].sum_val += numericValue;
                         }
@@ -185,22 +189,28 @@ export default class Wsm_csv_output extends LightningElement {
      * @returns {String} CSV-formatted summary row or empty string if no summarizations
      */
     compileSummarizations() {
-        // Check if any field has summarize set to true
+        // Check if any field has summarize or average set to true
         let hasSummarizations = this.summaryDataObject.some(field => field.summarize);
-        if (!hasSummarizations) {
+        let hasAverages = this.summaryDataObject.some(field => field.average);
+        if (!hasSummarizations && !hasAverages) {
             return '';
         }
 
         let summaryRowText = '';
         try {
             this.summaryDataObject.forEach(fieldData => {
+                // If a label is provided, add it to the current column.
+                summaryRowText += fieldData.summaryLabel || '';
                 if (fieldData.summarize) {
                     // Output the accumulated sum value
                     summaryRowText += this.normalizeOutputForRow(fieldData.sum_val) + ',';
-                } else if (fieldData.summaryLabel) {
-                    // Output a label (e.g., "Total:") for non-summarized fields
-                    summaryRowText += this.normalizeOutputForRow(fieldData.summaryLabel) + ',';
-                } else {
+                } 
+                else if (fieldData.average) {
+                    // Output the average value
+                    let averageValue = fieldData.total_rows > 0 ? fieldData.sum_val / fieldData.total_rows : 0;
+                    summaryRowText += this.normalizeOutputForRow(averageValue) + ',';
+                }
+                else {
                     // Empty cell for fields without summarization
                     summaryRowText += ',';
                 }
@@ -230,7 +240,7 @@ export default class Wsm_csv_output extends LightningElement {
 
 
     normalizeOutputForRow(incFieldData) {
-        if (typeof cell === 'boolean') {
+        if (typeof incFieldData === 'boolean') {
             incFieldData = incFieldData ? 'TRUE' : 'FALSE'
         };
         if (incFieldData === null || incFieldData === undefined) {

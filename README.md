@@ -78,7 +78,8 @@ The `INCFieldSettingsJSON` property accepts a JSON array defining how to process
 | `apiName` | `String` | Conditional | API name of the field to pull (required for `recordfield` type) |
 | `value` | `String` | Conditional | Static value to use for every row (required for `hardCodedValue` type) |
 | `summarize` | `Boolean` | No | If `true`, adds a sum of this field's values in a summary row at the end |
-| `summaryLabel` | `String` | No | Text to display in this column on the summary row (e.g., "Total:") |
+| `average` | `Boolean` | No | If `true`, calculates the average of this field's values and displays it in the summary row |
+| `summaryLabel` | `String` | No | Text to prepend in the summary row cell (e.g., "Total:", "Avg:"). Can be combined with `summarize` or `average` |
 
 ### Field Types
 
@@ -90,18 +91,29 @@ The `INCFieldSettingsJSON` property accepts a JSON array defining how to process
 
 ---
 
-## Row Summarization
+## Row Summarization & Averages
 
-The component supports automatic summarization of numeric fields. When any field has `summarize: true`, a summary row is appended to the end of the CSV output.
+The component supports automatic summarization (sums and averages) of numeric fields. When any field has `summarize: true` or `average: true`, a summary row is appended to the end of the CSV output.
+
+### Summarization Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `summarize` | `Boolean` | Calculates the **sum** of all values in this column |
+| `average` | `Boolean` | Calculates the **average** of all values in this column |
+| `summaryLabel` | `String` | Text to prepend in the summary cell (e.g., "Total:", "Avg:") |
 
 ### How to Enable Summarization
 
 Add the following properties to your field settings:
 
 1. **`summarize: true`** - Add this to any `recordfield` that contains numeric data you want to sum
-2. **`summaryLabel`** (optional) - Add this to any field where you want a label to appear in the summary row (e.g., "Total:")
+2. **`average: true`** - Add this to any `recordfield` that contains numeric data you want to average
+3. **`summaryLabel`** (optional) - Add this to any field where you want a label to appear in the summary row
 
-### Summarization Example
+> **Note**: You can combine `summaryLabel` with either `summarize` or `average` to display both a label and a calculated value in the same cell.
+
+### Summarization Example (Sum)
 
 ```json
 [
@@ -132,10 +144,7 @@ Add the following properties to your field settings:
 ]
 ```
 
-### Example Output
-
-Given the above configuration and sample data, the CSV output would be:
-
+**Output:**
 ```
 Item Name,Quantity,Unit Price,Line Total,
 Widget A,10,25.00,250.00,
@@ -144,12 +153,63 @@ Widget C,20,10.00,200.00,
 TOTAL:,35,85.00,700.00,
 ```
 
+### Average Example
+
+```json
+[
+    {
+        "usedLabel": "Student Name",
+        "type": "recordfield",
+        "apiName": "Name",
+        "summaryLabel": "CLASS AVERAGE:"
+    },
+    {
+        "usedLabel": "Test Score",
+        "type": "recordfield",
+        "apiName": "Test_Score__c",
+        "average": true
+    },
+    {
+        "usedLabel": "Attendance %",
+        "type": "recordfield",
+        "apiName": "Attendance_Percent__c",
+        "average": true
+    }
+]
+```
+
+**Output:**
+```
+Student Name,Test Score,Attendance %,
+Alice,92,98,
+Bob,85,95,
+Charlie,78,88,
+CLASS AVERAGE:,85,93.67,
+```
+
+### Combined Label and Value Example
+
+You can combine a label with a summarization in the same column:
+
+```json
+{
+    "usedLabel": "Total Amount",
+    "type": "recordfield",
+    "apiName": "Amount__c",
+    "summarize": true,
+    "summaryLabel": "Grand Total: $"
+}
+```
+
+This outputs: `Grand Total: $1500` in the summary row cell.
+
 ### Summarization Notes
 
-- **Numeric Values Only**: The `summarize` feature works with numeric fields. Non-numeric values will be treated as `0`
+- **Numeric Values Only**: Both `summarize` and `average` work with numeric fields. Non-numeric values are treated as `0`
 - **Summary Row Position**: The summary row always appears at the end of the CSV, after all data rows
-- **Empty Summary Cells**: Columns without `summarize: true` or `summaryLabel` will have empty cells in the summary row
-- **Multiple Summarizations**: You can summarize multiple columns in the same export
+- **Empty Summary Cells**: Columns without `summarize`, `average`, or `summaryLabel` will have empty cells in the summary row
+- **Multiple Calculations**: You can use `summarize` on some columns and `average` on others in the same export
+- **Mutually Exclusive**: Use either `summarize` OR `average` on a single field, not both
 
 ---
 
