@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>64.0</apiVersion>
+     <isExposed>true</isExposed>
+    <masterLabel>Export Records to CSV / XLSX</masterLabel>
+    <description>Export records to CSV or XLSX format with download and save-to-record options.</description>
+    <targets>
+        <target>lightning__FlowScreen</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets='lightning__FlowScreen'>
+            <propertyType name='PT' extends='SObject' label='Select a Object' description='Select a Object'/>
+            <property name='INCRecords' type='{PT[]}' label='Incoming Records' description='Input Record Collection Variable'/>
+            <property name='INCPreamble' type='String' label='Incoming Preable Row Text' description='Input text in correct format in documentation.'/>
+            <property name='INCFieldSettingsJSON' type='String' label='Incoming Field Settings JSON' description='Input text in correct format in documentation.'/>
+            <property name='INCFileName' type='String' label='Exported File Name' description='Example thisFile.csv - XLSX version auto-generates the .xlsx extension.'/>
+            <property name='INCFirstPublishedLocationId' type='String' label='First Published Location Id' description='This is the Id of the record you would like the resulting file to be saved to.'/>
+            </targetConfig>
+    </targetConfigs>
+
+</LightningComponentBundle>

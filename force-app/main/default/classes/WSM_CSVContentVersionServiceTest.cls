@@ -4,7 +4,7 @@
  */
 @IsTest
 private class WSM_CSVContentVersionServiceTest {
-    
+
     /**
      * @description Test successful CSV save to Account record
      */
@@ -13,10 +13,10 @@ private class WSM_CSVContentVersionServiceTest {
         // Create test Account to link the file to
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
-        
+
         String csvContent = 'Name,Value\nTest,123';
         String fileName = 'test_export.csv';
-        
+
         Test.startTest();
         ContentVersion result = WSM_CSVContentVersionService.saveCSVToRecord(
             csvContent,
@@ -24,7 +24,7 @@ private class WSM_CSVContentVersionServiceTest {
             testAccount.Id
         );
         Test.stopTest();
-        
+
         // Verify ContentVersion was created
         System.assertNotEquals(null, result, 'ContentVersion should not be null');
         System.assertNotEquals(null, result.Id, 'ContentVersion Id should not be null');
@@ -32,17 +32,17 @@ private class WSM_CSVContentVersionServiceTest {
         System.assertEquals('test_export', result.Title, 'Title should match filename without extension');
         System.assertEquals(fileName, result.PathOnClient, 'PathOnClient should match filename');
         System.assertEquals(testAccount.Id, result.FirstPublishLocationId, 'FirstPublishLocationId should match');
-        
+
         // Verify ContentDocumentLink was created
         List<ContentDocumentLink> links = [
-            SELECT Id, LinkedEntityId, ContentDocumentId 
-            FROM ContentDocumentLink 
+            SELECT Id, LinkedEntityId, ContentDocumentId
+            FROM ContentDocumentLink
             WHERE ContentDocumentId = :result.ContentDocumentId
             AND LinkedEntityId = :testAccount.Id
         ];
         System.assertEquals(1, links.size(), 'ContentDocumentLink should be created');
     }
-    
+
     /**
      * @description Test that .csv extension is added if missing
      */
@@ -50,10 +50,10 @@ private class WSM_CSVContentVersionServiceTest {
     static void testSaveCSVToRecord_AddsCSVExtension() {
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
-        
+
         String csvContent = 'Name,Value\nTest,123';
         String fileName = 'test_export'; // No .csv extension
-        
+
         Test.startTest();
         ContentVersion result = WSM_CSVContentVersionService.saveCSVToRecord(
             csvContent,
@@ -61,10 +61,10 @@ private class WSM_CSVContentVersionServiceTest {
             testAccount.Id
         );
         Test.stopTest();
-        
+
         System.assertEquals('test_export.csv', result.PathOnClient, 'CSV extension should be added');
     }
-    
+
     /**
      * @description Test error when CSV content is empty
      */
@@ -72,11 +72,11 @@ private class WSM_CSVContentVersionServiceTest {
     static void testSaveCSVToRecord_EmptyContent() {
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
-        
+
         String csvContent = '';
         String fileName = 'test_export.csv';
         Boolean exceptionThrown = false;
-        
+
         Test.startTest();
         try {
             WSM_CSVContentVersionService.saveCSVToRecord(
@@ -86,13 +86,12 @@ private class WSM_CSVContentVersionServiceTest {
             );
         } catch (AuraHandledException e) {
             exceptionThrown = true;
-            // AuraHandledException wraps message, just verify exception was thrown
         }
         Test.stopTest();
-        
+
         System.assert(exceptionThrown, 'Expected AuraHandledException for empty content');
     }
-    
+
     /**
      * @description Test error when CSV content is null
      */
@@ -100,11 +99,11 @@ private class WSM_CSVContentVersionServiceTest {
     static void testSaveCSVToRecord_NullContent() {
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
-        
+
         String csvContent = null;
         String fileName = 'test_export.csv';
         Boolean exceptionThrown = false;
-        
+
         Test.startTest();
         try {
             WSM_CSVContentVersionService.saveCSVToRecord(
@@ -116,10 +115,10 @@ private class WSM_CSVContentVersionServiceTest {
             exceptionThrown = true;
         }
         Test.stopTest();
-        
+
         System.assert(exceptionThrown, 'Expected AuraHandledException for null content');
     }
-    
+
     /**
      * @description Test error when filename is empty
      */
@@ -127,11 +126,11 @@ private class WSM_CSVContentVersionServiceTest {
     static void testSaveCSVToRecord_EmptyFileName() {
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
-        
+
         String csvContent = 'Name,Value\nTest,123';
         String fileName = '';
         Boolean exceptionThrown = false;
-        
+
         Test.startTest();
         try {
             WSM_CSVContentVersionService.saveCSVToRecord(
@@ -143,10 +142,10 @@ private class WSM_CSVContentVersionServiceTest {
             exceptionThrown = true;
         }
         Test.stopTest();
-        
+
         System.assert(exceptionThrown, 'Expected AuraHandledException for empty filename');
     }
-    
+
     /**
      * @description Test error when filename is null
      */
@@ -154,11 +153,11 @@ private class WSM_CSVContentVersionServiceTest {
     static void testSaveCSVToRecord_NullFileName() {
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
-        
+
         String csvContent = 'Name,Value\nTest,123';
         String fileName = null;
         Boolean exceptionThrown = false;
-        
+
         Test.startTest();
         try {
             WSM_CSVContentVersionService.saveCSVToRecord(
@@ -170,10 +169,10 @@ private class WSM_CSVContentVersionServiceTest {
             exceptionThrown = true;
         }
         Test.stopTest();
-        
+
         System.assert(exceptionThrown, 'Expected AuraHandledException for null filename');
     }
-    
+
     /**
      * @description Test error when FirstPublishedLocationId is null
      */
@@ -182,7 +181,7 @@ private class WSM_CSVContentVersionServiceTest {
         String csvContent = 'Name,Value\nTest,123';
         String fileName = 'test_export.csv';
         Boolean exceptionThrown = false;
-        
+
         Test.startTest();
         try {
             WSM_CSVContentVersionService.saveCSVToRecord(
@@ -194,10 +193,10 @@ private class WSM_CSVContentVersionServiceTest {
             exceptionThrown = true;
         }
         Test.stopTest();
-        
+
         System.assert(exceptionThrown, 'Expected AuraHandledException for null location id');
     }
-    
+
     /**
      * @description Test with uppercase .CSV extension
      */
@@ -205,10 +204,10 @@ private class WSM_CSVContentVersionServiceTest {
     static void testSaveCSVToRecord_UppercaseExtension() {
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
-        
+
         String csvContent = 'Name,Value\nTest,123';
         String fileName = 'test_export.CSV';
-        
+
         Test.startTest();
         ContentVersion result = WSM_CSVContentVersionService.saveCSVToRecord(
             csvContent,
@@ -216,8 +215,137 @@ private class WSM_CSVContentVersionServiceTest {
             testAccount.Id
         );
         Test.stopTest();
-        
+
         // Should not add another .csv since it already has one (case insensitive check)
         System.assertEquals('test_export.CSV', result.PathOnClient, 'Uppercase CSV extension should be preserved');
+    }
+
+    // =========================================================================
+    // Tests for saveFileToRecord (binary/Base64 method for XLSX)
+    // =========================================================================
+
+    /**
+     * @description Test successful binary file save (XLSX) to Account record
+     */
+    @IsTest
+    static void testSaveFileToRecord_Success() {
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+
+        // Create a simple Base64 string (represents binary content)
+        String base64Content = EncodingUtil.base64Encode(Blob.valueOf('fake xlsx binary content'));
+        String fileName = 'test_export.xlsx';
+
+        Test.startTest();
+        ContentVersion result = WSM_CSVContentVersionService.saveFileToRecord(
+            base64Content,
+            fileName,
+            testAccount.Id
+        );
+        Test.stopTest();
+
+        System.assertNotEquals(null, result, 'ContentVersion should not be null');
+        System.assertNotEquals(null, result.Id, 'ContentVersion Id should not be null');
+        System.assertNotEquals(null, result.ContentDocumentId, 'ContentDocumentId should not be null');
+        System.assertEquals('test_export', result.Title, 'Title should match filename without extension');
+        System.assertEquals(fileName, result.PathOnClient, 'PathOnClient should match filename');
+        System.assertEquals(testAccount.Id, result.FirstPublishLocationId, 'FirstPublishLocationId should match');
+    }
+
+    /**
+     * @description Test error when base64 content is empty
+     */
+    @IsTest
+    static void testSaveFileToRecord_EmptyContent() {
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+
+        Boolean exceptionThrown = false;
+
+        Test.startTest();
+        try {
+            WSM_CSVContentVersionService.saveFileToRecord(
+                '',
+                'test.xlsx',
+                testAccount.Id
+            );
+        } catch (AuraHandledException e) {
+            exceptionThrown = true;
+        }
+        Test.stopTest();
+
+        System.assert(exceptionThrown, 'Expected AuraHandledException for empty content');
+    }
+
+    /**
+     * @description Test error when filename is empty for binary save
+     */
+    @IsTest
+    static void testSaveFileToRecord_EmptyFileName() {
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+
+        String base64Content = EncodingUtil.base64Encode(Blob.valueOf('content'));
+        Boolean exceptionThrown = false;
+
+        Test.startTest();
+        try {
+            WSM_CSVContentVersionService.saveFileToRecord(
+                base64Content,
+                '',
+                testAccount.Id
+            );
+        } catch (AuraHandledException e) {
+            exceptionThrown = true;
+        }
+        Test.stopTest();
+
+        System.assert(exceptionThrown, 'Expected AuraHandledException for empty filename');
+    }
+
+    /**
+     * @description Test error when location ID is null for binary save
+     */
+    @IsTest
+    static void testSaveFileToRecord_NullLocationId() {
+        String base64Content = EncodingUtil.base64Encode(Blob.valueOf('content'));
+        Boolean exceptionThrown = false;
+
+        Test.startTest();
+        try {
+            WSM_CSVContentVersionService.saveFileToRecord(
+                base64Content,
+                'test.xlsx',
+                null
+            );
+        } catch (AuraHandledException e) {
+            exceptionThrown = true;
+        }
+        Test.stopTest();
+
+        System.assert(exceptionThrown, 'Expected AuraHandledException for null location id');
+    }
+
+    /**
+     * @description Test binary save with filename that has no extension
+     */
+    @IsTest
+    static void testSaveFileToRecord_NoExtension() {
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+
+        String base64Content = EncodingUtil.base64Encode(Blob.valueOf('content'));
+        String fileName = 'noextension';
+
+        Test.startTest();
+        ContentVersion result = WSM_CSVContentVersionService.saveFileToRecord(
+            base64Content,
+            fileName,
+            testAccount.Id
+        );
+        Test.stopTest();
+
+        System.assertEquals('noextension', result.Title, 'Title should be full name when no extension');
+        System.assertEquals('noextension', result.PathOnClient, 'PathOnClient should match');
     }
 }

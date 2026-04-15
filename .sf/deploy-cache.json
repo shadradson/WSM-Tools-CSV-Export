@@ -1,0 +1,35 @@
+{
+  "0AfKY00000F7J5x0AF": {
+    "manifest": "C:\\Users\\shadr\\.sf\\manifestCache\\0AfKY00000F7J5x0AF.xml",
+    "target-org": "dev+shapi@wesummitmountains.com",
+    "test-level": "RunSpecifiedTests",
+    "tests": [
+      "WSM_CSVContentVersionServiceTest"
+    ],
+    "dry-run": false,
+    "ignore-conflicts": false,
+    "ignore-errors": false,
+    "ignore-warnings": false,
+    "api": "SOAP",
+    "wait": 10,
+    "isMdapi": false,
+    "timestamp": "2026-03-12T19:50:07.273Z"
+  },
+  "0AfKY00000F7JDD0A3": {
+    "manifest": "C:\\Users\\shadr\\.sf\\manifestCache\\0AfKY00000F7JDD0A3.xml",
+    "target-org": "dev+shapi@wesummitmountains.com",
+    "test-level": "RunSpecifiedTests",
+    "tests": [
+      "WSM_CSVContentVersionServiceTest"
+    ],
+    "async": true,
+    "dry-run": false,
+    "ignore-conflicts": false,
+    "ignore-errors": false,
+    "ignore-warnings": false,
+    "api": "SOAP",
+    "wait": 33,
+    "isMdapi": false,
+    "timestamp": "2026-03-13T14:05:32.152Z"
+  }
+}

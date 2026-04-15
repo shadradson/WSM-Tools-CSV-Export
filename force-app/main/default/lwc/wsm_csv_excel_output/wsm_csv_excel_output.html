@@ -1,0 +1,30 @@
+<template>
+    <div class="download-container" lwc:if={displayDownloadButton}>
+        <h3>File is ready for download.</h3>
+        <p>File Name: {INCFileName}</p>
+        <div class="button-group">
+            <a href={csvDownloadLink} download={INCFileName} class="download-btn csv-download-btn">DOWNLOAD CSV</a>
+            <button
+                lwc:if={xlsxEnabled}
+                class="download-btn xlsx-download-btn"
+                onclick={handleDownloadXLSX}>
+                DOWNLOAD XLSX
+            </button>
+        </div>
+        <div class="button-group save-group" lwc:if={showSaveToRecordButton}>
+            <button
+                class="save-to-record-btn csv-save-btn"
+                onclick={handleSaveCSVToRecord}
+                disabled={isSavingCSV}>
+                {csvSaveButtonLabel}
+            </button>
+            <button
+                lwc:if={xlsxEnabled}
+                class="save-to-record-btn xlsx-save-btn"
+                onclick={handleSaveXLSXToRecord}
+                disabled={isSavingXLSX}>
+                {xlsxSaveButtonLabel}
+            </button>
+        </div>
+    </div>
+</template>
